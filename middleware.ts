@@ -1,23 +1,21 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "./src/auth";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Only protect checkout + orders
-  const isProtected =
-    pathname === "/checkout" ||
-    pathname.startsWith("/checkout/") ||
-    pathname === "/orders" ||
-    pathname.startsWith("/orders/");
+  // ✅ Only protect these routes
+  const protectedPaths = ["/checkout", "/orders"];
+
+  const isProtected = protectedPaths.some(
+    (p) => pathname === p || pathname.startsWith(p + "/")
+  );
 
   if (!isProtected) return NextResponse.next();
 
   const session = await auth();
-  const isLoggedIn = !!session?.user;
-
-  if (!isLoggedIn) {
+  if (!session?.user) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("callbackUrl", pathname);
@@ -27,6 +25,7 @@ export async function middleware(req: NextRequest) {
   return NextResponse.next();
 }
 
+// ✅ CRITICAL: matcher must NOT be "/:path*" or "/(.*)"
 export const config = {
   matcher: ["/checkout/:path*", "/orders/:path*"],
 };
