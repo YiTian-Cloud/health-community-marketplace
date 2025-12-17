@@ -1,26 +1,29 @@
-import NextAuth from "next-auth";
+import NextAuth, { type NextAuthConfig } from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
 
-const authConfig = {
+const authConfig: NextAuthConfig = {
   secret: process.env.AUTH_SECRET,
   trustHost: true,
-  debug: true,
+  debug: process.env.NODE_ENV !== "production",
 
   adapter: PrismaAdapter(prisma),
+
+  // ✅ Fix: now properly typed as "database" | "jwt"
   session: { strategy: "database" },
 
   pages: {
-    signIn: "/login", // ✅ ADD THIS LINE
+    signIn: "/login",
   },
 
   providers: [
     GitHub({
-      clientId: process.env.GITHUB_ID!,
-      clientSecret: process.env.GITHUB_SECRET!,
+      // ✅ safer than ! (won't crash build if missing)
+      clientId: process.env.GITHUB_ID ?? "",
+      clientSecret: process.env.GITHUB_SECRET ?? "",
     }),
 
     Credentials({

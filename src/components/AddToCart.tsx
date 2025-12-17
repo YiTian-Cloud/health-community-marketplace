@@ -23,8 +23,6 @@ export function AddToCart({ productId }: { productId: string }) {
 
       // quick feedback
       alert("Added to cart ✅");
-      window.dispatchEvent(new Event("cart:changed"));
-
     } finally {
       setLoading(false);
     }

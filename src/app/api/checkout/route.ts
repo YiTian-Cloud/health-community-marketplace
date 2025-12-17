@@ -3,7 +3,8 @@ import { auth } from "@/auth"; // wherever your NextAuth export is
 import Stripe from "stripe";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-02-24.acacia", // if TS complains, remove apiVersion line
+  apiVersion: "2025-12-15.clover",
+ // if TS complains, remove apiVersion line
 });
 
 type CartItem = {
@@ -67,8 +68,9 @@ export async function POST(req: Request) {
   });
 
   const origin = req.headers.get("origin")!;
-  const success_url=`${origin}/order/success?orderId=${order.id}`,
-  const cancel_url= `${origin}/cart`,
+  const success_url = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
+  const cancel_url = `${origin}/cart`;
+  
 
   const checkout = await stripe.checkout.sessions.create({
     mode: "payment",

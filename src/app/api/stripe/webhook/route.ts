@@ -7,7 +7,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-01-27.acacia",
+    apiVersion: "2025-12-15.clover",
 });
 
 export async function POST(req: Request) {
@@ -33,25 +33,26 @@ export async function POST(req: Request) {
       const evtSession = event.data.object as Stripe.Checkout.Session;
 
       // ✅ Retrieve FULL session + expand payment intent + latest charge
-      const full = await stripe.checkout.sessions.retrieve(evtSession.id, {
+      const full = (await stripe.checkout.sessions.retrieve(evtSession.id, {
         expand: ["payment_intent", "payment_intent.latest_charge"],
-      });
+      })) as unknown as Stripe.Checkout.Session;
+      
 
       const orderIdFromMeta = full.metadata?.orderId;
       const cartId = full.metadata?.cartId;
 
-      const pi = full.payment_intent as Stripe.PaymentIntent | null;
-      const latestCharge = (pi?.latest_charge as Stripe.Charge | null) ?? null;
+      const pi = (full.payment_intent as Stripe.PaymentIntent | null) ?? null;
+const latestCharge = (pi?.latest_charge as Stripe.Charge | null) ?? null;
 
-      // Shipping: prefer session.shipping_details, fallback to payment_intent.shipping
-      const shipping =
-        full.shipping_details ??
-        (pi?.shipping ?? null);
+const shipping =
+(full as any)["shipping_details"] ??
+(pi?.shipping ?? null);
 
-      // Billing: prefer charge.billing_details, fallback to session.customer_details
-      const billing =
-        latestCharge?.billing_details ??
-        (full.customer_details ?? null);
+const billing =
+latestCharge?.billing_details ??
+(full as any)["customer_details"] ??
+null;
+
 
       // ✅ Update order: prefer metadata orderId; fallback to stripeSessionId match
       if (orderIdFromMeta) {
