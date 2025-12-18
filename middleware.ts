@@ -28,17 +28,10 @@ export default auth((req) => {
   const { nextUrl } = req;
   const pathname = nextUrl.pathname;
 
-  // ✅ Never block NextAuth routes (or sign-in will "do nothing")
-  if (pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
-  }
+  // ✅ allow public pages
+  if (isPublicPath(pathname)) return NextResponse.next();
 
-  // ✅ Allow public pages
-  if (isPublicPath(pathname)) {
-    return NextResponse.next();
-  }
-
-  // ✅ Require login for everything else
+  // ✅ protect everything else
   if (!req.auth) {
     const loginUrl = new URL("/login", nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname + nextUrl.search);
@@ -48,7 +41,7 @@ export default auth((req) => {
   return NextResponse.next();
 });
 
-// Run middleware on pages + API (but exclude static assets)
+// ✅ CRITICAL: do NOT run middleware on /api at all
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

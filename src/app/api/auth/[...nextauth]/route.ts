@@ -1,5 +1,3 @@
 import { handlers } from "@/auth";
-
-export const runtime = "nodejs"; // ✅ force Node runtime (not edge)
-
+export const runtime = "nodejs";
 export const { GET, POST } = handlers;
