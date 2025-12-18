@@ -32,6 +32,19 @@ export async function POST(req: Request) {
   });
   const byId = Object.fromEntries(products.map((p) => [p.id, p]));
 
+  const proto = req.headers.get("x-forwarded-proto");
+  const host = req.headers.get("x-forwarded-host");
+  
+  const origin =
+    proto && host
+      ? `${proto}://${host}`
+      : req.headers.get("origin") ?? "";
+  
+  if (!origin) {
+    return new Response("Unable to determine request origin", { status: 500 });
+  }
+  
+
   const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = cart.map((c) => {
     const p = byId[c.productId];
     if (!p) throw new Error(`Invalid product: ${c.productId}`);
@@ -43,7 +56,7 @@ export async function POST(req: Request) {
         product_data: {
           name: p.name,
           description: p.description,
-          images: c.imageUrl ? [new URL(c.imageUrl, process.env.NEXTAUTH_URL!).toString()] : [],
+          images: c.imageUrl ? [new URL(c.imageUrl, origin).toString()] : [],
         },
       },
     };

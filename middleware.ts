@@ -1,31 +1,34 @@
-import type { NextRequest } from "next/server";
+// middleware.ts
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { auth } from "./src/auth";
+import { authConfig } from "./src/auth.config";
 
-export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+const { auth } = NextAuth(authConfig);
 
-  // ✅ Only protect these routes
-  const protectedPaths = ["/checkout", "/orders"];
+const PUBLIC_PATHS = new Set([
+  "/",
+  "/about",
+  "/login",
+  "/register",
+  "/cart",
+  "/checkout/success",
+  "/checkout/cancel",
+]);
 
-  const isProtected = protectedPaths.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
-  );
+export default auth((req) => {
+  const { nextUrl } = req;
 
-  if (!isProtected) return NextResponse.next();
+  if (PUBLIC_PATHS.has(nextUrl.pathname)) return NextResponse.next();
 
-  const session = await auth();
-  if (!session?.user) {
-    const url = req.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("callbackUrl", pathname);
-    return NextResponse.redirect(url);
+  if (!req.auth) {
+    const loginUrl = new URL("/login", nextUrl.origin);
+    loginUrl.searchParams.set("callbackUrl", nextUrl.pathname + nextUrl.search);
+    return NextResponse.redirect(loginUrl);
   }
 
   return NextResponse.next();
-}
+});
 
-// ✅ CRITICAL: matcher must NOT be "/:path*" or "/(.*)"
 export const config = {
-  matcher: ["/checkout/:path*", "/orders/:path*"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\..*).*)"],
 };

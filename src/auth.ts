@@ -1,30 +1,28 @@
-import NextAuth, { type NextAuthConfig } from "next-auth";
-import GitHub from "next-auth/providers/github";
+// src/auth.ts
+import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/db";
+import { authConfig } from "./auth.config";
 
-const authConfig: NextAuthConfig = {
-  secret: process.env.AUTH_SECRET,
-  trustHost: true,
-  debug: process.env.NODE_ENV !== "production",
+/**
+ * Server-only NextAuth instance.
+ * Prisma + Credentials are NOT Edge-safe, so keep them out of middleware imports.
+ */
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+} = NextAuth({
+  ...authConfig,
 
   adapter: PrismaAdapter(prisma),
-
-  // ✅ Fix: now properly typed as "database" | "jwt"
   session: { strategy: "database" },
 
-  pages: {
-    signIn: "/login",
-  },
-
   providers: [
-    GitHub({
-      // ✅ safer than ! (won't crash build if missing)
-      clientId: process.env.GITHUB_ID ?? "",
-      clientSecret: process.env.GITHUB_SECRET ?? "",
-    }),
+    ...(authConfig.providers ?? []),
 
     Credentials({
       name: "Email & Password",
@@ -35,13 +33,9 @@ const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         const email = String(credentials?.email ?? "").trim().toLowerCase();
         const password = String(credentials?.password ?? "");
-
         if (!email || !password) return null;
 
-        const user = await prisma.user.findUnique({
-          where: { email },
-        });
-
+        const user = await prisma.user.findUnique({ where: { email } });
         if (!user?.passwordHash) return null;
 
         const valid = await bcrypt.compare(password, user.passwordHash);
@@ -56,11 +50,4 @@ const authConfig: NextAuthConfig = {
       },
     }),
   ],
-};
-
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth(authConfig);
+});
