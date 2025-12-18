@@ -13,6 +13,8 @@ const PUBLIC_PATHS = new Set([
   "/cart",
   "/checkout/success",
   "/checkout/cancel",
+  "/community",
+  "/marketplace",
 ]);
 
 export default auth((req) => {
