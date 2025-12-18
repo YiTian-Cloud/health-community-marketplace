@@ -23,13 +23,11 @@ export default function LoginPage() {
       <button
   type="button"
   className="w-full rounded border px-3 py-2"
-  onClick={() => {
-    const cb = encodeURIComponent("/community");
-    window.location.href = `/api/auth/signin/github?callbackUrl=${cb}`;
-  }}
+  onClick={() => signIn("github", { callbackUrl: "/community" })}
 >
   Continue with GitHub
 </button>
+
 
 
       <div className="text-center text-sm opacity-70">or</div>
