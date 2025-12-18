@@ -80,7 +80,7 @@ export async function POST(req: Request) {
     include: { items: true },
   });
 
-  const origin = req.headers.get("origin")!;
+  // const origin = req.headers.get("origin")!;
   const success_url = `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
   const cancel_url = `${origin}/cart`;
   
