@@ -10,12 +10,7 @@ import { authConfig } from "./auth.config";
  * Server-only NextAuth instance.
  * Prisma + Credentials are NOT Edge-safe, so keep them out of middleware imports.
  */
-export const {
-  handlers: { GET, POST },
-  auth,
-  signIn,
-  signOut,
-} = NextAuth({
+ export const { handlers, auth, signIn, signOut } = NextAuth({
   ...authConfig,
 
   adapter: PrismaAdapter(prisma),
