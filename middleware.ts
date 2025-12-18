@@ -16,6 +16,7 @@ const PUBLIC_PREFIXES = [
   "/checkout/cancel",
   "/community",
   "/marketplace",
+  "/checkout/start",
 ];
 
 function isPublicPath(pathname: string) {

@@ -8,9 +8,10 @@ export function CartActions() {
   const [loading, setLoading] = useState(false);
 
   async function checkout() {
+    // Send user to the robust server flow
     router.push("/checkout/start");
   }
-  
+
   async function clearCart() {
     setLoading(true);
     try {

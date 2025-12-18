@@ -14,7 +14,7 @@ import { authConfig } from "./auth.config";
   ...authConfig,
 
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database" },
+  session: { strategy: "jwt" },
 
   providers: [
     ...(authConfig.providers ?? []),
